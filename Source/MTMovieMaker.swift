@@ -230,9 +230,9 @@ public class MTMovieMaker: NSObject {
         
         let composition = AVMutableComposition()
         guard let videoComposition = composition.addMutableTrack(withMediaType: .video, preferredTrackID: CMPersistentTrackID(1)),
-            let audioComposition = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: CMPersistentTrackID(2)) else {
-            return
-        }
+              let audioComposition = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: CMPersistentTrackID(2)) else {
+                  return
+              }
         
         let videoTimeRange = CMTimeRange(start: .zero, duration: video.duration)
         try videoComposition.insertTimeRange(videoTimeRange, of: videoTrack, at: .zero)
