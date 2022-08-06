@@ -154,25 +154,27 @@ public class MTMovieMaker: NSObject {
                         while !writerInput.isReadyForMoreMediaData {
                             Thread.sleep(forTimeInterval: 0.01)
                         }
-                        let progress = Float(counter) / Float(frameCount)
-                        transition.progress = progress
-                        let frameTime = CMTimeMake(value: Int64(transitionDurations[index] * Double(progress) * 1000), timescale: 1000)
-                        let presentTime = CMTimeAdd(frameBeginTime, frameTime)
-
+                        
                         var pixelBuffer: CVPixelBuffer?
                         CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pixelBufferPool, &pixelBuffer)
                         
                         if index == 0 && counter == 0 {
-                            if let buffer = pixelBuffer {
-                                try? MTTransition.context?.render(images[index], to: buffer)
+                            transition.progress = Float(1.0)
+                            if let buffer = pixelBuffer,let frame = transition.outputImage {
+                                try? MTTransition.context?.render(frame, to: buffer)
                                 pixelBufferAdaptor.append(buffer, withPresentationTime: CMTime.zero)
                             }
                         }
+                        
+                        let progress = Float(counter) / Float(frameCount)
+                        transition.progress = progress
+                        let frameTime = CMTimeMake(value: Int64(transitionDurations[index] * Double(progress) * 1000), timescale: 1000)
+                        let presentTime = CMTimeAdd(frameBeginTime, frameTime)
                         if let buffer = pixelBuffer, let frame = transition.outputImage {
                             try? MTTransition.context?.render(frame, to: buffer)
                             pixelBufferAdaptor.append(buffer, withPresentationTime: presentTime)
                             let lastIndex = index + 1
-                            if lastIndex == images.count-1 && progress == 1.0 {
+                            if lastIndex == images.count-1 && counter == frameCount {
                                 let frametime = CMTimeMake(value: Int64(frameDurations[index + 1] * 1000 * 0.5), timescale: 1000)
                                 let lastPresentTime = CMTimeAdd(presentTime, frametime)
                                 pixelBufferAdaptor.append(buffer, withPresentationTime: lastPresentTime)
@@ -182,7 +184,6 @@ public class MTMovieMaker: NSObject {
                 }
                 let transitionDuration = CMTimeMake(value: Int64(transitionDurations[index] * 1000), timescale: 1000)
                 frameBeginTime = CMTimeAdd(frameBeginTime, transitionDuration)
-                
                 index += 1
             }
             
@@ -228,9 +229,9 @@ public class MTMovieMaker: NSObject {
         
         let composition = AVMutableComposition()
         guard let videoComposition = composition.addMutableTrack(withMediaType: .video, preferredTrackID: CMPersistentTrackID(1)),
-            let audioComposition = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: CMPersistentTrackID(2)) else {
-            return
-        }
+              let audioComposition = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: CMPersistentTrackID(2)) else {
+                  return
+              }
         
         let videoTimeRange = CMTimeRange(start: .zero, duration: video.duration)
         try videoComposition.insertTimeRange(videoTimeRange, of: videoTrack, at: .zero)
