@@ -170,7 +170,6 @@ public class MTMovieMaker: NSObject {
                         transition.progress = progress
                         let frameTime = CMTimeMake(value: Int64(transitionDurations[index] * Double(progress) * 1000), timescale: 1000)
                         let presentTime = CMTimeAdd(frameBeginTime, frameTime)
-                        
                         if let buffer = pixelBuffer, let frame = transition.outputImage {
                             try? MTTransition.context?.render(frame, to: buffer)
                             pixelBufferAdaptor.append(buffer, withPresentationTime: presentTime)
