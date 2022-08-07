@@ -165,7 +165,11 @@ public class MTMovieMaker: NSObject {
                                 pixelBufferAdaptor.append(buffer, withPresentationTime: CMTime.zero)
                             }
                         }
-                        
+                        if index == 0 && counter == 0{
+                            while !writerInput.isReadyForMoreMediaData {
+                                Thread.sleep(forTimeInterval: 0.01)
+                            }
+                        }
                         let progress = Float(counter) / Float(frameCount)
                         transition.progress = progress
                         let frameTime = CMTimeMake(value: Int64(transitionDurations[index] * Double(progress) * 1000), timescale: 1000)
@@ -175,6 +179,9 @@ public class MTMovieMaker: NSObject {
                             pixelBufferAdaptor.append(buffer, withPresentationTime: presentTime)
                             let lastIndex = index + 1
                             if lastIndex == images.count-1 && counter == frameCount {
+                                while !writerInput.isReadyForMoreMediaData {
+                                    Thread.sleep(forTimeInterval: 0.01)
+                                }
                                 let frametime = CMTimeMake(value: Int64(frameDurations[index + 1] * 1000 * 0.5), timescale: 1000)
                                 let lastPresentTime = CMTimeAdd(presentTime, frametime)
                                 pixelBufferAdaptor.append(buffer, withPresentationTime: lastPresentTime)
